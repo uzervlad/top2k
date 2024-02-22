@@ -34,7 +34,6 @@ export default async function update(client: Client) {
       let rolesToRemove = discordMember.roles.cache.filter(role => roles.includes(role.id)).map(role => role.id);
       let roleToAdd = getRoleId(batchUser.statistics_rulesets.osu.global_rank);
       rolesToRemove = rolesToRemove.filter(role => role != roleToAdd);
-      console.log(discordMember.user.tag, rolesToRemove, roleToAdd);
       if(rolesToRemove.length)
         await discordMember.roles.remove(rolesToRemove);
       if(!discordMember.roles.cache.has(roleToAdd))

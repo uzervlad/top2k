@@ -60,7 +60,7 @@ export default class VerifyCommand extends Command {
     let [ dbUser ] = await db.select().from(users).where(eq(users.id, interaction.user.id));
 
     if(dbUser) {
-      db
+      await db
         .update(users)
         .set({
           verify_method: "global_rank",
