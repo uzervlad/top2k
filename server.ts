@@ -73,7 +73,7 @@ const server = new Elysia()
       return "Restricted."
     }
 
-    let top2k = user.statistics.global_rank <= 2000;
+    let top2k = user.statistics.global_rank <= 2000 || dbUser?.verify_method == "pending";
     let mapper = user.ranked_and_approved_beatmapset_count;
 
     if(!top2k && !mapper) {
