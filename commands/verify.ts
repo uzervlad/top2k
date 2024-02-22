@@ -57,13 +57,25 @@ export default class VerifyCommand extends Command {
       return interaction.editReply("Your verification has expired");
     }
 
-    await db.insert(users).values({
-      id: interaction.user.id,
-      username: interaction.user.tag,
-      osu_id: verification.osu_id,
-      verify_method: "global_rank",
-      verify_time: Date.now(),
-    });
+    let [ dbUser ] = await db.select().from(users).where(eq(users.id, interaction.user.id));
+
+    if(dbUser) {
+      db
+        .update(users)
+        .set({
+          verify_method: "global_rank",
+          osu_id: verification.osu_id,
+        })
+        .where(eq(users.id, interaction.user.id));
+    } else {
+      await db.insert(users).values({
+        id: interaction.user.id,
+        username: interaction.user.tag,
+        osu_id: verification.osu_id,
+        verify_method: "global_rank",
+        verify_time: Date.now(),
+      });
+    }
 
     let discordUser = await context.guild.members.fetch(interaction.user.id);
     discordUser.roles.add([

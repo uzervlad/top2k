@@ -37,7 +37,7 @@ const server = new Elysia()
       .from(users)
       .where(eq(users.id, query.state!));
 
-    if(dbUser) {
+    if(dbUser && dbUser.verify_method != 'pending') {
       return "User already verified.";
     }
 
