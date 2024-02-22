@@ -17,6 +17,7 @@ export const verifications = sqliteTable("verifications", {
   id: text("id").primaryKey(),
   osu_id: integer("osu_id").notNull(),
   rank: integer("rank").notNull(),
+  method: text("method").$type<VerificationMethod>().notNull(),
   code: text("code").notNull(),
   time: integer("time").notNull(),
 });

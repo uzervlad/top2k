@@ -15,6 +15,13 @@
       "when": 1708621995517,
       "tag": "0001_slow_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1708635883304,
+      "tag": "0002_grey_carmella_unuscione",
+      "breakpoints": true
     }
   ]
 }

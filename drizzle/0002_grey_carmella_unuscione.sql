@@ -1,0 +1,1 @@
+ALTER TABLE verifications ADD `method` text NOT NULL;

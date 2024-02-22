@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import { html } from "@elysiajs/html";
 import axios from "axios";
 import { db } from "./db";
-import { users, verifications } from "./schema";
+import { users, verifications, type VerificationMethod } from "./schema";
 import { eq, or } from "drizzle-orm";
 
 type OsuTokenResponse = {
@@ -16,6 +16,7 @@ type OsuUser = {
   statistics: {
     global_rank: number,
   },
+  ranked_and_approved_beatmapset_count: number,
 };
 
 function generateRandomCode() {
@@ -62,6 +63,8 @@ const server = new Elysia()
       },
     });
 
+    console.log(user);
+
     if(!user) {
       return "No user found."
     }
@@ -70,8 +73,11 @@ const server = new Elysia()
       return "Restricted."
     }
 
-    if(user.statistics.global_rank > 2000) {
-      return "Not in top 2k.";
+    let top2k = user.statistics.global_rank <= 2000;
+    let mapper = user.ranked_and_approved_beatmapset_count;
+
+    if(!top2k && !mapper) {
+      return "Requirements not met.";
     }
 
     let [ verification ] = await db.select()
@@ -89,10 +95,13 @@ const server = new Elysia()
 
     let code = generateRandomCode();
 
+    let method: VerificationMethod = mapper ? "ranked_mapper" : "global_rank"
+
     await db.insert(verifications).values({
       id: query.state!,
       osu_id: user.id,
       rank: user.statistics.global_rank,
+      method,
       time: Date.now(),
       code,
     })
