@@ -46,7 +46,7 @@ export default class OsuAPI {
   }
 
   public static async getUsers(ids: number[]): Promise<APIUser[]> {
-    if(this.token?.expired)
+    if(!this.token || this.token.expired)
       await this.authorize();
 
     let { data } = await axios.get(`https://osu.ppy.sh/api/v2/users?${ids.map(id => `ids[]=${id}`).join('&')}`, {

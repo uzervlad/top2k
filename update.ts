@@ -17,6 +17,7 @@ export function getRoleId(rank: number) {
 }
 
 export default async function update(client: Client) {
+  try {
   let guild = await client.guilds.fetch(Bun.env.GUILD_ID);
 
   let allUsers = await db.select().from(users).where(isNotNull(users.osu_id));
@@ -29,15 +30,19 @@ export default async function update(client: Client) {
         .update(users)
         .set({ osu_username: batchUser.username })
         .where(eq(users.osu_id, batchUser.id));
-      let discordUser = await guild.members.fetch(user.id);
-      let roleToRemove = discordUser.roles.cache.find(role => roles.includes(role.id))?.id;
+      let discordMember = await guild.members.fetch(user.id);
+      let rolesToRemove = discordMember.roles.cache.filter(role => roles.includes(role.id)).map(role => role.id);
       let roleToAdd = getRoleId(batchUser.statistics_rulesets.osu.global_rank);
-      if(roleToRemove != roleToAdd) {
-        if(roleToRemove)
-          await discordUser.roles.remove(roleToRemove);
-        await discordUser.roles.add(roleToAdd);
-      }
+      rolesToRemove = rolesToRemove.filter(role => role != roleToAdd);
+      console.log(discordMember.user.tag, rolesToRemove, roleToAdd);
+      if(rolesToRemove.length)
+        await discordMember.roles.remove(rolesToRemove);
+      if(!discordMember.roles.cache.has(roleToAdd))
+        await discordMember.roles.add(roleToAdd);
     }
     await Bun.sleep(3000);
+  }
+  } catch(e) {
+    console.log(e);
   }
 }
