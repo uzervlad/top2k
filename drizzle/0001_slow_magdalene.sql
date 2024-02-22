@@ -1,0 +1,1 @@
+ALTER TABLE verifications ADD `rank` integer NOT NULL;
