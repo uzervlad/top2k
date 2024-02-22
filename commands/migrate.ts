@@ -11,7 +11,7 @@ export default class MigrateCommand extends Command {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>, context: Context) {
-    let members = context.guild.members.cache.filter(member => member.roles.cache.has(Bun.env.ROLE_ID_VERIFIED));
+    let members = await context.guild.members.list().then(list => list.filter(member => member.roles.cache.has(Bun.env.ROLE_ID_VERIFIED)));
     let failed = [];
     for(let [_, member] of members) {
       try {
