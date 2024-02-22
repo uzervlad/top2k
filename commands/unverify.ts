@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 export default class UnverifyCommand extends Command {
   data = new SlashCommandBuilder()
     .setName('unverify')
-    .setDescription('')
+    .setDescription('description')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles);
 
   ephemeral = true;
