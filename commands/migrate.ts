@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, type CacheType, PermissionFlagsBits } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, type CacheType, PermissionFlagsBits, GuildMember, Collection } from "discord.js";
 import Command from "../command";
 import type { Context } from "../context";
 import { db } from "../db";
@@ -11,7 +11,7 @@ export default class MigrateCommand extends Command {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>, context: Context) {
-    let members = await context.guild.members.list().then(list => list.filter(member => member.roles.cache.has(Bun.env.ROLE_ID_VERIFIED)));
+    let members = await context.guild.members.fetch().then((list: Collection<string, GuildMember>) => list.filter(member => member.roles.cache.has(Bun.env.ROLE_ID_VERIFIED)));
     let failed = [];
     for(let [_, member] of members) {
       try {

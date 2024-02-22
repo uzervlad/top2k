@@ -6,10 +6,9 @@ import createContext, { type Context } from "./context";
 import { db } from "./db";
 import { users } from "./schema";
 import { eq } from "drizzle-orm";
-import { getRoleId } from "./update";
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
 });
 
 const commands = await createCommands();
