@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, 
 import Command from "../command";
 import type { Context } from "../context";
 import update from "../update";
+import { Log } from "../logger";
 
 export default class ForceUpdateCommand extends Command {
   data = new SlashCommandBuilder()
@@ -13,6 +14,8 @@ export default class ForceUpdateCommand extends Command {
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>, context: Context) {
     update(context.client);
+
+    Log.info(`Force update requested by ${interaction.user.id} (${interaction.user.tag})`);
 
     interaction.editReply("Update started");
   }

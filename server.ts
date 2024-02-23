@@ -4,6 +4,7 @@ import axios from "axios";
 import { db } from "./db";
 import { users, verifications, type VerificationMethod } from "./schema";
 import { eq, or } from "drizzle-orm";
+import { Log } from "./logger";
 
 type OsuTokenResponse = {
   access_token: string,
@@ -34,6 +35,8 @@ const server = new Elysia()
       return "Invalid query."
     }
 
+    Log.info(`Verification requested by ${query.state}`);
+
     let [ dbUser ] = await db.select()
       .from(users)
       .where(eq(users.id, query.state!));
@@ -62,8 +65,6 @@ const server = new Elysia()
         "x-api-version": "20220705",
       },
     });
-
-    console.log(user);
 
     if(!user) {
       return "No user found."
@@ -96,6 +97,8 @@ const server = new Elysia()
     let code = generateRandomCode();
 
     let method: VerificationMethod = mapper ? "ranked_mapper" : "global_rank"
+
+    Log.info(`Approved ${query.state} for verification as ${method}`);
 
     await db.insert(verifications).values({
       id: query.state!,

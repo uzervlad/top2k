@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, type CacheType, Permi
 import Command from "../command";
 import { db } from "../db";
 import { users, type VerificationMethod } from "../schema";
+import { Log } from "../logger";
 
 export default class AllowCommand extends Command {
   data = new SlashCommandBuilder()
@@ -52,6 +53,8 @@ export default class AllowCommand extends Command {
     const data = interaction.options.getString("data");
 
     try {
+      Log.info(`Manual verification for ${user.id} (${user.tag}) by ${interaction.user.id} (${interaction.user.tag})`);
+
       await db.insert(users).values({
         id: user.id,
         username: user.tag,
@@ -61,7 +64,10 @@ export default class AllowCommand extends Command {
         verify_data: data,
       });
       interaction.editReply("Verified");
-    } catch(e) {
+    } catch(e: any) {
+      Log.error("Manual verification failed");
+      Log.error(e.trace.split("\n"));
+      
       interaction.editReply("Verification failed");
     }
   }

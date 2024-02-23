@@ -5,6 +5,7 @@ import { users, verifications } from "../schema";
 import { eq } from "drizzle-orm";
 import type { Context } from "../context";
 import { getRoleId } from "../update";
+import { Log } from "../logger";
 
 export default class VerifyCommand extends Command {
   data = new SlashCommandBuilder()
@@ -38,15 +39,19 @@ export default class VerifyCommand extends Command {
       });
     }
 
+    Log.info(`Verification attempt by ${interaction.user.id} (${interaction.user.tag})`);
+
     const [ verification ] = await db.select()
       .from(verifications)
       .where(eq(verifications.id, interaction.user.id));
 
     if(!verification) {
+      Log.warn(`No pending verification for ${interaction.user.id} (${interaction.user.tag})`);
       return interaction.editReply("No pending verification found");
     }
 
     if(verification.code != code) {
+      Log.warn(`Invalid verification code for ${interaction.user.id} (${interaction.user.tag})`);
       return interaction.editReply("Wrong verification code");
     }
 
@@ -54,6 +59,7 @@ export default class VerifyCommand extends Command {
 
     // 10 minutes expiry
     if(verification.time + 600000 < Date.now()) {
+      Log.warn(`Verification has expired for ${interaction.user.id} (${interaction.user.tag})`);
       return interaction.editReply("Your verification has expired");
     }
 
@@ -63,7 +69,7 @@ export default class VerifyCommand extends Command {
       await db
         .update(users)
         .set({
-          verify_method: "global_rank",
+          verify_method: verification.method,
           osu_id: verification.osu_id,
         })
         .where(eq(users.id, interaction.user.id));
@@ -72,7 +78,7 @@ export default class VerifyCommand extends Command {
         id: interaction.user.id,
         username: interaction.user.tag,
         osu_id: verification.osu_id,
-        verify_method: "global_rank",
+        verify_method: verification.method,
         verify_time: Date.now(),
       });
     }
@@ -82,6 +88,8 @@ export default class VerifyCommand extends Command {
       Bun.env.ROLE_ID_VERIFIED,
       getRoleId(verification.rank)
     ]);
+
+    Log.info(`Verification successful for ${interaction.user.id} (${interaction.user.tag})`);
 
     interaction.editReply("You have been verified. Welcome to top2k!");
   }
