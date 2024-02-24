@@ -2,7 +2,8 @@ import type { Client, Guild } from "discord.js";
 
 export type Context = {
   client: Client,
-  guild: Guild
+  guild: Guild,
+  update_timeout?: Timer
 }
 
 export default async function createContext(client: Client): Promise<Context> {

@@ -7,6 +7,7 @@ import { db } from "./db";
 import { users } from "./schema";
 import { eq } from "drizzle-orm";
 import { Log } from "./logger";
+import update, { UPDATE_INTERVAL } from "./update";
 
 Log.init();
 
@@ -28,7 +29,10 @@ server.listen(8877);
 
 client.once(Events.ClientReady, async client => {
   console.log(`Logged in as ${client.user.tag}`);
+  
   context = await createContext(client);
+
+  setTimeout(() => update(context), UPDATE_INTERVAL);
 });
 
 client.on(Events.InteractionCreate, async interaction => {

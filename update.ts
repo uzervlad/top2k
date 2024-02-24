@@ -2,10 +2,12 @@ import { and, eq, isNotNull } from "drizzle-orm";
 import { db } from "./db";
 import { users } from "./schema";
 import OsuAPI from "./api";
-import type { Client } from "discord.js";
 import { Log } from "./logger";
+import type { Context } from "./context";
 
 const roles = [Bun.env.ROLE_ID_A, Bun.env.ROLE_ID_B, Bun.env.ROLE_ID_C, Bun.env.ROLE_ID_D];
+
+export const UPDATE_INTERVAL = 1000 * 60 * 60 * 6;
 
 export function getRoleId(rank: number) {
   if(rank < 10)
@@ -19,12 +21,17 @@ export function getRoleId(rank: number) {
 
 let updateInProgress = false;
 
-export default async function update(client: Client) {
+export default async function update(context: Context) {
   if(updateInProgress) return;
+
+  clearTimeout(context.update_timeout);
+
+  Log.info("Initiating update")
+
   updateInProgress = true;
 
   try {
-    let guild = await client.guilds.fetch(Bun.env.GUILD_ID);
+    let guild = await context.client.guilds.fetch(Bun.env.GUILD_ID);
 
     let allUsers = await db.select().from(users).where(and(eq(users.verify_method, "global_rank"), isNotNull(users.osu_id)));
     while(allUsers.length > 0) {
@@ -52,9 +59,13 @@ export default async function update(client: Client) {
       }
       await Bun.sleep(3000);
     }
+
+    Log.info("Update finished successfully");
   } catch(e: any) {
     Log.error("Unexpected exception while updating user data");
     Log.error(e.trace.split("\n"));
   }
+
+  context.update_timeout = setTimeout(() => update(context), UPDATE_INTERVAL)!;
   updateInProgress = false;
 }

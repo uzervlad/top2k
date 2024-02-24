@@ -13,7 +13,8 @@ export default class ForceUpdateCommand extends Command {
   ephemeral = true;
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>, context: Context) {
-    update(context.client);
+    clearTimeout(context.update_timeout);
+    update(context);
 
     Log.info(`Force update requested by ${interaction.user.id} (${interaction.user.tag})`);
 
