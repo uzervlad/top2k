@@ -84,10 +84,16 @@ export default class VerifyCommand extends Command {
     }
 
     let discordUser = await context.guild.members.fetch(interaction.user.id);
-    discordUser.roles.add([
-      Bun.env.ROLE_ID_VERIFIED,
-      getRoleId(verification.rank)
-    ]);
+    if(verification.method == "global_rank")
+      discordUser.roles.add([
+        Bun.env.ROLE_ID_VERIFIED,
+        getRoleId(verification.rank)
+      ]);
+    else if(verification.method == "ranked_mapper")
+      discordUser.roles.add([
+        Bun.env.ROLE_ID_VERIFIED,
+        Bun.env.ROLE_ID_MAPPER,
+      ]);
 
     Log.info(`Verification successful for ${interaction.user.id} (${interaction.user.tag})`);
 

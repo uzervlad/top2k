@@ -5,6 +5,7 @@ import { db } from "./db";
 import { users, verifications, type VerificationMethod } from "./schema";
 import { eq, or } from "drizzle-orm";
 import { Log } from "./logger";
+import { RANK_FLOOR } from "./update";
 
 type OsuTokenResponse = {
   access_token: string,
@@ -74,7 +75,7 @@ const server = new Elysia()
       return "Restricted."
     }
 
-    let top2k = user.statistics.global_rank <= 2000 || dbUser?.verify_method == "pending";
+    let top2k = user.statistics.global_rank <= RANK_FLOOR || dbUser?.verify_method == "pending";
     let mapper = user.ranked_and_approved_beatmapset_count;
 
     if(!top2k && !mapper) {

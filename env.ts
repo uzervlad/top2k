@@ -8,6 +8,7 @@ declare module "bun" {
     ROLE_ID_B: string;
     ROLE_ID_C: string;
     ROLE_ID_D: string;
+    ROLE_ID_MAPPER: string;
     ROLE_ID_VERIFIED: string;
 
     CLIENT_ID: string;
