@@ -7,6 +7,8 @@ import type { Context } from "./context";
 
 const roles = [Bun.env.ROLE_ID_A, Bun.env.ROLE_ID_B, Bun.env.ROLE_ID_C, Bun.env.ROLE_ID_D];
 
+export const RANK_FLOOR = 2200;
+
 export const UPDATE_INTERVAL = 1000 * 60 * 60 * 6;
 
 export function getRoleId(rank: number) {
@@ -33,10 +35,11 @@ export default async function update(context: Context) {
   try {
     let guild = await context.client.guilds.fetch(Bun.env.GUILD_ID);
 
-    let allUsers = await db.select().from(users).where(and(eq(users.verify_method, "global_rank"), isNotNull(users.osu_id)));
+    let allUsers = await db.select().from(users).where(isNotNull(users.osu_id));
     while(allUsers.length > 0) {
       let batch = allUsers.splice(0, 50);
       let batchUsers = await OsuAPI.getUsers(batch.map(user => user.osu_id!));
+      Log.info(JSON.stringify(batchUsers, null, 2).split("\n"));
       for(let batchUser of batchUsers) {
         let user = batch.find(user => user.osu_id == batchUser.id)!;
 
@@ -47,16 +50,25 @@ export default async function update(context: Context) {
 
         let discordMember = await guild.members.fetch(user.id);
 
-        let rolesToRemove = discordMember.roles.cache.filter(role => roles.includes(role.id)).map(role => role.id);
-        let roleToAdd = getRoleId(batchUser.statistics_rulesets.osu.global_rank);
-        rolesToRemove = rolesToRemove.filter(role => role != roleToAdd);
+        let dbUser = batch.find(u => u.osu_id == batchUser.id)!;
 
-        if(rolesToRemove.length)
-          await discordMember.roles.remove(rolesToRemove);
-        
-        if(!discordMember.roles.cache.has(roleToAdd))
-          await discordMember.roles.add(roleToAdd);
+        if(dbUser.verify_method == "global_rank") {
+          let rolesToRemove = discordMember.roles.cache.filter(role => roles.includes(role.id)).map(role => role.id);
+          let roleToAdd = getRoleId(batchUser.statistics_rulesets.osu.global_rank);
+          rolesToRemove = rolesToRemove.filter(role => role != roleToAdd);
+
+          if(rolesToRemove.length)
+            await discordMember.roles.remove(rolesToRemove);
+          
+          if(!discordMember.roles.cache.has(roleToAdd))
+            await discordMember.roles.add(roleToAdd);
+        } else if(dbUser.verify_method == "ranked_mapper") {
+          if(batchUser.statistics_rulesets.osu.global_rank <= RANK_FLOOR) {
+            // TODO: maybe transfer user to `global_rank`?
+          }
+        }
       }
+
       await Bun.sleep(3000);
     }
 

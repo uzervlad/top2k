@@ -3,6 +3,7 @@ import Command from "../command";
 import { db } from "../db";
 import { users, type VerificationMethod } from "../schema";
 import { Log } from "../logger";
+import { eq } from "drizzle-orm";
 
 export default class AllowCommand extends Command {
   data = new SlashCommandBuilder()
@@ -55,14 +56,27 @@ export default class AllowCommand extends Command {
     try {
       Log.info(`Manual verification for ${user.id} (${user.tag}) by ${interaction.user.id} (${interaction.user.tag})`);
 
-      await db.insert(users).values({
-        id: user.id,
-        username: user.tag,
-        osu_id: osuId,
-        verify_method: reason as VerificationMethod,
-        verify_time: Date.now(),
-        verify_data: data,
-      });
+      let [ dbUser ] = await db.select().from(users).where(eq(users.id, user.id));
+
+      if(dbUser?.verify_method == "pending") {
+        await db.update(users)
+          .set({
+            osu_id: osuId,
+            verify_method: reason as VerificationMethod,
+            verify_time: Date.now(),
+            verify_data: data,
+          })
+          .where(eq(users.id, user.id))
+      } else {
+        await db.insert(users).values({
+          id: user.id,
+          username: user.tag,
+          osu_id: osuId,
+          verify_method: reason as VerificationMethod,
+          verify_time: Date.now(),
+          verify_data: data,
+        });
+      }
       interaction.editReply("Verified");
     } catch(e: any) {
       Log.error("Manual verification failed");
