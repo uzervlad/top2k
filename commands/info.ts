@@ -6,6 +6,51 @@ import { users } from "../schema";
 import { eq } from "drizzle-orm";
 import dateFormat from "dateformat";
 
+const DATEFORMAT_MASK = "yyyy-mm-dd h:MM TT";
+
+async function createEmbed(context: Context, data: typeof users.$inferSelect) {
+  let user = await context.guild.members.fetch(data.id);
+
+  if(!data.osu_id) {
+    if(data.verify_method == "pending")
+      return new EmbedBuilder()
+        .setAuthor({
+          name: data.username
+        })
+        .setThumbnail(user.displayAvatarURL())
+        .setDescription("User is pending re-verification");
+    
+    return new EmbedBuilder()
+      .setAuthor({
+        name: data.username
+      })
+      .setThumbnail(user.displayAvatarURL())
+      .setFields({
+        name: "Verified as",
+        value: data.verify_method,
+      }, {
+        name: "Verified at",
+        value: dateFormat(data.verify_time, DATEFORMAT_MASK),
+        inline: true,
+      });
+  } else {
+    return new EmbedBuilder()
+      .setAuthor({
+        name: data.osu_username!,
+        url: `https://osu.ppy.sh/u/${data.osu_id}`,
+      })
+      .setThumbnail(`https://a.ppy.sh/${data.osu_id}`)
+      .setFields({
+        name: "Verified as",
+        value: data.verify_method,
+      }, {
+        name: "Verified at",
+        value: dateFormat(data.verify_time, DATEFORMAT_MASK),
+        inline: true,
+      });
+  }
+}
+
 export default class InfoCommand extends Command {
   data = new SlashCommandBuilder()
     .setName('info')
@@ -27,20 +72,7 @@ export default class InfoCommand extends Command {
       });
     }
 
-    let embed = new EmbedBuilder()
-      .setAuthor({
-        name: data.username,
-        url: `https://osu.ppy.sh/u/${data.osu_id}`,
-      })
-      .setThumbnail(`https://a.ppy.sh/${data.osu_id}`)
-      .setFields({
-        name: "Verified as",
-        value: data.verify_method,
-      }, {
-        name: "Verified at",
-        value: dateFormat(data.verify_time),
-        inline: true,
-      });
+    let embed = await createEmbed(context, data);
 
     interaction.editReply({
       embeds: [embed]
