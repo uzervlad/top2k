@@ -42,7 +42,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if(!command) {
       interaction.reply({
         ephemeral: true,
-        content: "how the fuck?",
+        content: "how the fuck? (ping octo this shouldn't happen!!!!!)",
       });
       return;
     }
@@ -73,7 +73,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
       interaction.reply({
         ephemeral: true,
-        content: `.`,
+        content: `Click to proceed`,
         components: [row as any],
       });
     }

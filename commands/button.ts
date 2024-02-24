@@ -19,7 +19,7 @@ export default class ButtonCommand extends Command {
       .addComponents(verifyButton);
 
     return interaction.editReply({
-      content: `Click`,
+      content: `Click to start verification`,
       components: [row as any],
     });
   }
