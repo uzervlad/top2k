@@ -9,7 +9,7 @@ import dateFormat from "dateformat";
 export default class InfoCommand extends Command {
   data = new SlashCommandBuilder()
     .setName('info')
-    .setDescription('')
+    .setDescription('Get verified user\'s info')
     .addUserOption(
       option => option
         .setName('user')
