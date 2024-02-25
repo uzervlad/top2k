@@ -39,7 +39,6 @@ export default async function update(context: Context) {
     while(allUsers.length > 0) {
       let batch = allUsers.splice(0, 50);
       let batchUsers = await OsuAPI.getUsers(batch.map(user => user.osu_id!));
-      Log.info(JSON.stringify(batchUsers, null, 2).split("\n"));
       for(let batchUser of batchUsers) {
         let user = batch.find(user => user.osu_id == batchUser.id)!;
 
